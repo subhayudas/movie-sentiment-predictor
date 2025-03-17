@@ -244,6 +244,15 @@ def analyze():
 def health_check():
     return jsonify({'status': 'ok', 'model_loaded': model is not None, 'tokenizer_loaded': tokenizer is not None})
 
+
+# Update CORS configuration for production
+
+app = Flask(__name__)
+CORS(app, origins=[
+    "https://movie-sentiment-predictor.vercel.app",  # Remove trailing slash
+    "http://localhost:3000"  
+])
+
 if __name__ == '__main__':
     # Run the Flask app
     port = int(os.environ.get('PORT', 5000))
