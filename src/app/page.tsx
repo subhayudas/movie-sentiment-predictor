@@ -1,102 +1,111 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { v4 as uuidv4 } from 'uuid';
+import ReviewForm from './components/ReviewForm';
+import SentimentResult from './components/SentimentResult';
+import SentimentChart from './components/SentimentChart';
+import { analyzeSentiment, ReviewSubmission, SentimentResponse, ReviewWithResults } from './api/sentimentService';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<SentimentResponse | null>(null);
+  const [currentMovieTitle, setCurrentMovieTitle] = useState<string>('');
+  const [reviewHistory, setReviewHistory] = useState<ReviewWithResults[]>([]);
+  
+  // Load review history from localStorage on component mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('reviewHistory');
+    if (savedHistory) {
+      try {
+        // Parse the saved history and convert string dates back to Date objects
+        const parsedHistory = JSON.parse(savedHistory).map((item: any) => ({
+          ...item,
+          timestamp: new Date(item.timestamp)
+        }));
+        setReviewHistory(parsedHistory);
+      } catch (error) {
+        console.error('Error loading review history:', error);
+      }
+    }
+  }, []);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Save review history to localStorage whenever it changes
+  useEffect(() => {
+    if (reviewHistory.length > 0) {
+      localStorage.setItem('reviewHistory', JSON.stringify(reviewHistory));
+    }
+  }, [reviewHistory]);
+
+  const handleSubmitReview = async (data: ReviewSubmission) => {
+    setIsLoading(true);
+    setResult(null);
+    setCurrentMovieTitle(data.movieTitle || '');
+    
+    try {
+      // Call the sentiment analysis API
+      const sentimentResult = await analyzeSentiment(data);
+      setResult(sentimentResult);
+      
+      // Add the result to history
+      const reviewWithResult: ReviewWithResults = {
+        ...data,
+        sentiment: sentimentResult.sentiment,
+        confidence: sentimentResult.confidence,
+        timestamp: new Date(),
+        id: uuidv4()
+      };
+      
+      setReviewHistory(prev => [reviewWithResult, ...prev]);
+      
+      // Clear the form after successful submission
+      // This is handled in the parent component to ensure proper state management
+    } catch (error) {
+      console.error('Error submitting review:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+      <header className="mb-12 text-center">
+        <div className="flex justify-center mb-4">
+          <Image 
+            src="/next.svg" 
+            alt="Movie Sentiment Analysis" 
+            width={180} 
+            height={37} 
+            className="dark:invert"
+          />
         </div>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          Movie Sentiment Analysis
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300">
+          Analyze the sentiment of movie reviews using AI
+        </p>
+      </header>
+
+      <main className="max-w-7xl mx-auto space-y-12">
+        <section>
+          <ReviewForm onSubmit={handleSubmitReview} isLoading={isLoading} />
+        </section>
+
+        {result && (
+          <section>
+            <SentimentResult result={result} movieTitle={currentMovieTitle} />
+          </section>
+        )}
+
+        <section>
+          <SentimentChart reviewHistory={reviewHistory} />
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
+        <p>© {new Date().getFullYear()} Movie Sentiment Analysis. All rights reserved.</p>
       </footer>
     </div>
   );
