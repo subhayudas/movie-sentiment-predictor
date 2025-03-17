@@ -29,7 +29,12 @@ class CustomUnpickler(pickle.Unpickler):
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+
+# Configure CORS for production and development
+CORS(app, origins=[
+    "https://movie-sentiment-predictor.vercel.app",
+    "http://localhost:3000"
+])
 
 # Define paths to model and tokenizer files
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "python", "model.h5")
@@ -244,16 +249,7 @@ def analyze():
 def health_check():
     return jsonify({'status': 'ok', 'model_loaded': model is not None, 'tokenizer_loaded': tokenizer is not None})
 
-
-# Update CORS configuration for production
-
-app = Flask(__name__)
-CORS(app, origins=[
-    "https://movie-sentiment-predictor.vercel.app",  # Remove trailing slash
-    "http://localhost:3000"  
-])
-
 if __name__ == '__main__':
     # Run the Flask app
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)  # Set debug to False for production
