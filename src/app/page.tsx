@@ -20,7 +20,7 @@ export default function Home() {
     if (savedHistory) {
       try {
         // Parse the saved history and convert string dates back to Date objects
-        const parsedHistory = JSON.parse(savedHistory).map((item: any) => ({
+        const parsedHistory = JSON.parse(savedHistory).map((item: ReviewWithResults) => ({
           ...item,
           timestamp: new Date(item.timestamp)
         }));

@@ -63,7 +63,7 @@ export default function SentimentResult({ result, movieTitle }: SentimentResultP
     <div className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
       <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
         Sentiment Analysis Result
-        {movieTitle && <span className="block text-lg mt-1">for "{movieTitle}"</span>}
+        {movieTitle && <span className="block text-lg mt-1">for &quot;{movieTitle}&quot;</span>}
       </h2>
       
       <div className={`p-6 rounded-lg border ${getSentimentColor()} flex items-center justify-between mb-6`}>

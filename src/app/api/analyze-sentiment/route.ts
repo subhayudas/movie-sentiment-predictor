@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { mockAnalyzeSentiment, ReviewSubmission } from '../sentimentService';
 import axios from 'axios';
 
-// Flask API URL - update this to match your Flask server address
-const FLASK_API_URL = 'http://localhost:5000/analyze';
+// Flask API URL - use environment variable or default to localhost
+const FLASK_API_URL = process.env.FLASK_API_URL || 'http://localhost:5000/analyze';
 
 /**
  * API route handler for sentiment analysis
