@@ -1,19 +1,26 @@
 import os
+# Set environment variables before any other imports
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Reduce TensorFlow warnings
-
-# Force specific numpy version compatibility
 os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+os.environ['PYTHONUNBUFFERED'] = '1'
 
-# Try importing numpy first to ensure it's properly initialized
+# Try importing numpy first with specific error handling
 try:
     import numpy as np
+    print(f"NumPy version: {np.__version__}")
 except ImportError as e:
     print(f"Error importing NumPy: {e}")
-    raise
+    # Try to reinstall numpy at runtime if needed
+    import sys
+    import subprocess
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--force-reinstall", "numpy==1.23.5"])
+    import numpy as np
+    print(f"Reinstalled NumPy version: {np.__version__}")
 
-# Now import other dependencies
+# Now import other dependencies with better error handling
 try:
     import tensorflow as tf
+    print(f"TensorFlow version: {tf.__version__}")
     import joblib
     import pickle
     from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -43,6 +50,7 @@ class CustomUnpickler(pickle.Unpickler):
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Configure CORS for production and development
 CORS(app, origins=[
@@ -261,7 +269,9 @@ def analyze():
 def health_check():
     return jsonify({'status': 'ok', 'model_loaded': model is not None, 'tokenizer_loaded': tokenizer is not None})
 
-if __name__ == '__main__':
-    # Run the Flask app
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)  # Set debug to False for production
+# Add this to your flask_server.py if not already present
+import os
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

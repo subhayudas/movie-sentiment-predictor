@@ -28,8 +28,10 @@ export interface ReviewWithResults extends ReviewSubmission {
   id: string;
 }
 
-// This URL should be updated to point to your actual sentiment analysis API
-const API_URL = '/api/analyze-sentiment';
+// Determine the API URL based on environment
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-render-app-name.onrender.com/analyze' // Replace with your actual Render URL
+  : '/api/analyze-sentiment';
 
 /**
  * Analyzes the sentiment of a movie review
