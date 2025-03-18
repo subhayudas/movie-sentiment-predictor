@@ -369,33 +369,7 @@ export default function Home() {
           </section>
         )}
 
-        {/* New Batch Analysis Section */}
-        <section id="batch" className="pt-24 scroll-mt-16 lazy-section">
-          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl fade-in-up">
-            <h2 className="text-3xl font-bold mb-6 animate-gradient-text">Batch Analysis</h2>
-            <p className="text-lg text-white/80 mb-8">
-              Upload a CSV file with multiple reviews to analyze them all at once.
-            </p>
-            <BatchAnalysis onBatchComplete={handleBatchComplete} />
-            
-            {batchResults.length > 0 && (
-              <div className="mt-8 p-6 bg-indigo-900/30 backdrop-blur-sm border border-indigo-500/20 rounded-lg">
-                <h3 className="text-xl font-bold mb-4 text-white">Batch Results</h3>
-                <p className="text-indigo-200 mb-4">
-                  Successfully analyzed {batchResults.length} reviews. Results have been added to your history.
-                </p>
-                <div className="flex justify-center">
-                  <a 
-                    href="#history" 
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
-                  >
-                    View in History
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
+        
         
         {/* New Comparative Analysis Section */}
         <section id="compare" className="pt-24 scroll-mt-16 lazy-section">
@@ -429,6 +403,34 @@ export default function Home() {
           <h2 className="text-3xl font-bold mb-6 animate-gradient-text">Analysis History</h2>
           <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl">
             <SentimentChart reviewHistory={reviewHistory} />
+          </div>
+        </section>
+
+        {/* New Batch Analysis Section */}
+        <section id="batch" className="pt-24 scroll-mt-16 lazy-section">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl fade-in-up">
+            <h2 className="text-3xl font-bold mb-6 animate-gradient-text">Batch Analysis</h2>
+            <p className="text-lg text-white/80 mb-8">
+              Upload a CSV file with multiple reviews to analyze them all at once.
+            </p>
+            <BatchAnalysis onBatchComplete={handleBatchComplete} />
+            
+            {batchResults.length > 0 && (
+              <div className="mt-8 p-6 bg-indigo-900/30 backdrop-blur-sm border border-indigo-500/20 rounded-lg">
+                <h3 className="text-xl font-bold mb-4 text-white">Batch Results</h3>
+                <p className="text-indigo-200 mb-4">
+                  Successfully analyzed {batchResults.length} reviews. Results have been added to your history.
+                </p>
+                <div className="flex justify-center">
+                  <a 
+                    href="#history" 
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+                  >
+                    View in History
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
