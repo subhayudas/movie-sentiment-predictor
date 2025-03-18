@@ -1,6 +1,12 @@
+// This file contains the API service for sentiment analysis
+
 import axios from 'axios';
 
-// Define the response type from the sentiment analysis API
+export interface ReviewSubmission {
+  review: string;
+  movieTitle?: string;
+}
+
 export interface SentimentResponse {
   sentiment: 'positive' | 'negative' | 'neutral';
   confidence: number;
@@ -14,62 +20,34 @@ export interface SentimentResponse {
   error?: string;
 }
 
-// Define the review submission type
-export interface ReviewSubmission {
-  review: string;
-  movieTitle?: string; // Optional movie title
-}
-
-// Define the review with results type for storing in history
-export interface ReviewWithResults extends ReviewSubmission {
-  sentiment: string;
-  confidence: number;
-  timestamp: Date;
-  id: string;
-}
-
 // Determine the API URL based on environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (process.env.NODE_ENV === 'production' 
-    ? 'https://movie-sentiment-predictor.onrender.com/analyze' 
-    : '/api/analyze-sentiment');
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://imdb-sentiment-api.onrender.com/analyze' // Replace with your actual production API URL
+  : '/api/analyze-sentiment';
 
 /**
  * Analyzes the sentiment of a movie review
- * @param reviewData The review data to analyze
- * @returns Promise with the sentiment analysis results
+ * @param data The review submission data
+ * @returns Promise with sentiment analysis results
  */
-export async function analyzeSentiment(reviewData: ReviewSubmission): Promise<SentimentResponse> {
+export async function analyzeSentiment(data: ReviewSubmission): Promise<SentimentResponse> {
   try {
-    console.log('Sending request to:', API_URL);
-    const response = await axios.post(API_URL, reviewData, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Origin': typeof window !== 'undefined' ? window.location.origin : 'https://imdb-sentiment-nextjs.vercel.app'
-      },
-      timeout: 15000 // 15 second timeout
-    });
+    const response = await axios.post(API_URL, data);
     return response.data;
   } catch (error) {
     console.error('Error analyzing sentiment:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error details:', {
-        message: error.message,
-        code: error.code,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+    
+    // In development, fall back to mock data if the API is not available
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Using mock data for sentiment analysis');
+      return mockAnalyzeSentiment(data);
     }
-    throw new Error('Failed to analyze sentiment. Please try again.');
+    
+    throw error;
   }
 }
 
-/**
- * Mock function to simulate API response for development
- * This can be used during development before connecting to the real API
- * @param reviewData The review data to analyze
- * @returns Promise with mock sentiment analysis results
- */
+// Mock implementation for development/testing
 export async function mockAnalyzeSentiment(reviewData: ReviewSubmission): Promise<SentimentResponse> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -151,8 +129,3 @@ export async function mockAnalyzeSentiment(reviewData: ReviewSubmission): Promis
     aspect_analysis: aspectAnalysis
   };
 }
-
-// Export a function that uses the mock or real API based on environment
-export const submitReview = process.env.NODE_ENV === 'development' 
-  ? mockAnalyzeSentiment 
-  : analyzeSentiment;

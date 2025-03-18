@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ReviewSubmission } from '../api/sentimentService';
 
 interface ReviewFormProps {
@@ -12,6 +12,16 @@ export default function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
   const [review, setReview] = useState('');
   const [movieTitle, setMovieTitle] = useState('');
   const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  // Reset form when submission is successful
+  useEffect(() => {
+    if (submitted && !isLoading) {
+      setReview('');
+      setMovieTitle('');
+      setSubmitted(false);
+    }
+  }, [isLoading, submitted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,11 +33,13 @@ export default function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
     }
     
     try {
+      setSubmitted(true);
       await onSubmit({ review, movieTitle });
-      // Don't clear the form here - we'll do it after successful analysis in the parent component
+      // Form will be cleared in the useEffect when isLoading becomes false
     } catch (err) {
       setError('Failed to submit review. Please try again.');
       console.error(err);
+      setSubmitted(false);
     }
   };
 
