@@ -19,20 +19,15 @@ ChartJS.register(
   LineElement
 );
 
-// Add animation plugin to ChartJS
-ChartJS.defaults.animations = {
-  tension: {
-    duration: 1000,
-    easing: 'easeInOutQuad',
-    from: 1,
-    to: 0,
-    loop: false
-  }
-};
-
 // Add responsive behavior
 ChartJS.defaults.responsive = true;
 ChartJS.defaults.maintainAspectRatio = false;
+
+// Set default animation options for charts
+ChartJS.defaults.animation = {
+  duration: 1000,
+  easing: 'easeInOutQuad',
+};
 
 interface SentimentVisualizationsProps {
   result: SentimentResponse;
