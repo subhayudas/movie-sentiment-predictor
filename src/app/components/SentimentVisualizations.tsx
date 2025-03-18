@@ -193,7 +193,12 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
             size: 12
           },
           color: '#6B7280',
-          callback: (value: number) => `${value}%`
+          callback: function(value: string | number) {
+            if (typeof value === 'number') {
+              return `${value}%`;
+            }
+            return value;
+          }
         },
         title: {
           display: true,
@@ -433,7 +438,7 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
           >
             <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white text-center">Aspect Scores</h3>
             <div className="h-64">
-              <Bar data={aspectBarData}  />
+              <Bar data={aspectBarData} options={barOptions} />
             </div>
           </motion.div>
 
