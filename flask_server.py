@@ -1,16 +1,30 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Reduce TensorFlow warnings
 
-import tensorflow as tf
-import joblib
-import pickle
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-import numpy as np
-import re
-from collections import Counter
-import json
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+# Force specific numpy version compatibility
+os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+
+# Try importing numpy first to ensure it's properly initialized
+try:
+    import numpy as np
+except ImportError as e:
+    print(f"Error importing NumPy: {e}")
+    raise
+
+# Now import other dependencies
+try:
+    import tensorflow as tf
+    import joblib
+    import pickle
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
+    import re
+    from collections import Counter
+    import json
+    from flask import Flask, request, jsonify
+    from flask_cors import CORS
+except ImportError as e:
+    print(f"Error importing dependencies: {e}")
+    raise
 
 # Create a custom unpickler to handle module remapping
 class CustomUnpickler(pickle.Unpickler):
@@ -176,6 +190,9 @@ def analyze_sentiment_aspects(text, sentiment_score):
     
     return aspect_scores
 
+# Define global constants
+MAX_SEQUENCE_LENGTH = 200  # Adjust based on your model's requirements
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     if not model or not tokenizer:
@@ -193,11 +210,6 @@ def analyze():
         
         if not review_text:
             return jsonify({'error': 'Review text is required'}), 400
-            
-        # Preprocess the text for the model
-        # This depends on how your model was trained
-        # For example, if your model expects padded sequences:
-        MAX_SEQUENCE_LENGTH = 100  # Adjust based on your model's requirements
         
         # Tokenize and pad the sequence
         sequences = tokenizer.texts_to_sequences([review_text])
