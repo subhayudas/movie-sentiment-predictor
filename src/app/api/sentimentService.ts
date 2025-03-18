@@ -20,6 +20,16 @@ export interface SentimentResponse {
   error?: string;
 }
 
+// Add the ReviewWithResults interface export
+export interface ReviewWithResults {
+  id: string;
+  review?: string;
+  movieTitle?: string;
+  sentiment: string;
+  confidence: number;
+  timestamp: Date;
+}
+
 // Determine the API URL based on environment
 const API_URL = process.env.NODE_ENV === 'production' 
   ? 'https://imdb-sentiment-api.onrender.com/analyze' // Replace with your actual production API URL
