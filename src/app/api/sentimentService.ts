@@ -29,9 +29,10 @@ export interface ReviewWithResults extends ReviewSubmission {
 }
 
 // Determine the API URL based on environment
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://movie-sentiment-predictor.onrender.com/analyze' // Updated Render URL
-  : '/api/analyze-sentiment';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://movie-sentiment-predictor.onrender.com/analyze' 
+    : '/api/analyze-sentiment');
 
 /**
  * Analyzes the sentiment of a movie review
@@ -40,10 +41,25 @@ const API_URL = process.env.NODE_ENV === 'production'
  */
 export async function analyzeSentiment(reviewData: ReviewSubmission): Promise<SentimentResponse> {
   try {
-    const response = await axios.post(API_URL, reviewData);
+    console.log('Sending request to:', API_URL);
+    const response = await axios.post(API_URL, reviewData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': typeof window !== 'undefined' ? window.location.origin : 'https://imdb-sentiment-nextjs.vercel.app'
+      },
+      timeout: 15000 // 15 second timeout
+    });
     return response.data;
   } catch (error) {
     console.error('Error analyzing sentiment:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error details:', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+    }
     throw new Error('Failed to analyze sentiment. Please try again.');
   }
 }

@@ -194,7 +194,11 @@ def analyze_review(review):
 
 # Create Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Update CORS to accept requests from your Vercel domain
+CORS(app, resources={r"/analyze": {"origins": [
+    "https://movie-sentiment-predictor.vercel.app",  # Your Vercel domain
+    "http://localhost:3000"  # For local development
+]}})
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
