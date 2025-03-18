@@ -1,0 +1,58 @@
+/* Performance optimizations for animations and transitions */
+
+/* Add will-change hints for elements that animate */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Optimize glass morphism effects for better performance */
+.glass-optimized {
+  background-color: rgba(76, 29, 149, 0.1);
+  /* Use box-shadow instead of backdrop-filter for better performance */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+}
+
+.glass-dark-optimized {
+  background-color: rgba(15, 23, 42, 0.7);
+  /* Use box-shadow instead of backdrop-filter for better performance */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+}
+
+/* Use transform: translateZ(0) to enable hardware acceleration */
+.hardware-accelerated {
+  transform: translateZ(0);
+}
+
+/* Reduce animation complexity for better performance */
+@media (prefers-reduced-motion: reduce) {
+  .animated-gradient {
+    animation: none !important;
+    background-position: 0% 50% !important;
+  }
+  
+  .bounce {
+    animation: none !important;
+  }
+  
+  .fade-in-up {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    animation: none !important;
+  }
+  
+  .hover-lift:hover {
+    transform: none !important;
+  }
+}
+
+/* Optimize intersection observer for lazy loading sections */
+.lazy-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 500px;
+}

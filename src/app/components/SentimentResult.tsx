@@ -18,11 +18,11 @@ export default function SentimentResult({ result, movieTitle }: SentimentResultP
   const getSentimentColor = () => {
     switch (sentiment) {
       case 'positive':
-        return 'bg-green-100 border-green-500 text-green-700';
+        return 'bg-purple-100 border-purple-500 text-purple-700';
       case 'negative':
         return 'bg-red-100 border-red-500 text-red-700';
       case 'neutral':
-        return 'bg-blue-100 border-blue-500 text-blue-700';
+        return 'bg-indigo-100 border-indigo-500 text-indigo-700';
       default:
         return 'bg-gray-100 border-gray-500 text-gray-700';
     }
@@ -31,11 +31,11 @@ export default function SentimentResult({ result, movieTitle }: SentimentResultP
   const getSentimentIcon = () => {
     switch (sentiment) {
       case 'positive':
-        return <FaSmile className="text-green-500 text-4xl" />;
+        return <FaSmile className="text-purple-500 text-4xl" />;
       case 'negative':
         return <FaFrown className="text-red-500 text-4xl" />;
       case 'neutral':
-        return <FaMeh className="text-blue-500 text-4xl" />;
+        return <FaMeh className="text-indigo-500 text-4xl" />;
       default:
         return null;
     }
@@ -47,13 +47,13 @@ export default function SentimentResult({ result, movieTitle }: SentimentResultP
       case 'Emotional Impact':
         return <FaTheaterMasks className="text-purple-500" />;
       case 'Acting Quality':
-        return <FaFilm className="text-yellow-500" />;
+        return <FaFilm className="text-indigo-500" />;
       case 'Plot & Story':
-        return <FaBook className="text-indigo-500" />;
+        return <FaBook className="text-violet-500" />;
       case 'Visual Elements':
-        return <FaVideo className="text-pink-500" />;
+        return <FaVideo className="text-fuchsia-500" />;
       case 'Direction':
-        return <FaDirections className="text-orange-500" />;
+        return <FaDirections className="text-pink-500" />;
       default:
         return <FaTag className="text-gray-500" />;
     }
@@ -108,8 +108,8 @@ export default function SentimentResult({ result, movieTitle }: SentimentResultP
             {key_phrases.map((phrase, index) => (
               <span 
                 key={index} 
-                className={`px-3 py-1 rounded-full text-sm ${sentiment === 'positive' ? 'bg-green-100 text-green-800' : 
-                  sentiment === 'negative' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}
+                className={`px-3 py-1 rounded-full text-sm ${sentiment === 'positive' ? 'bg-purple-100 text-purple-800' : 
+                  sentiment === 'negative' ? 'bg-red-100 text-red-800' : 'bg-indigo-100 text-indigo-800'}`}
               >
                 {phrase}
               </span>

@@ -49,8 +49,8 @@ export default function SentimentChart({ reviewHistory }: SentimentChartProps) {
     datasets: [
       {
         data: [sentimentCounts.positive, sentimentCounts.negative, sentimentCounts.neutral],
-        backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(59, 130, 246, 0.7)'],
-        borderColor: ['#10B981', '#EF4444', '#3B82F6'],
+        backgroundColor: ['rgba(147, 51, 234, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(99, 102, 241, 0.7)'],
+        borderColor: ['#9333EA', '#EF4444', '#6366F1'],
         borderWidth: 1,
       },
     ],
@@ -63,8 +63,8 @@ export default function SentimentChart({ reviewHistory }: SentimentChartProps) {
       {
         label: 'Confidence Score (%)',
         data: confidenceData,
-        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(147, 51, 234, 0.7)',
+        borderColor: '#9333EA',
         borderWidth: 1,
       },
     ],
