@@ -2,6 +2,7 @@
 
 import { SentimentResponse } from '../api/sentimentService';
 import { FaSmile, FaFrown, FaMeh, FaTag, FaFilm, FaTheaterMasks, FaBook, FaVideo, FaDirections } from 'react-icons/fa';
+import SentimentVisualizations from './SentimentVisualizations';
 
 interface SentimentResultProps {
   result: SentimentResponse | null;
@@ -151,6 +152,11 @@ export default function SentimentResult({ result, movieTitle }: SentimentResultP
           </div>
         </div>
       )}
+      
+      {/* Add the new visualizations component */}
+      <div className="mt-8">
+        <SentimentVisualizations result={result} movieTitle={movieTitle} />
+      </div>
     </div>
   );
 }
