@@ -178,22 +178,7 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
         },
         padding: 12,
         cornerRadius: 8,
-        displayColors: true,
-      },
-      title: {
-        display: true,
-        text: 'Aspect Analysis Scores',
-        font: {
-          family: "'Inter', sans-serif",
-          size: 16,
-          weight: 'bold'
-        },
-        color: '#4B5563',
-        padding: {
-          top: 10,
-          bottom: 20
-        }
-      },
+      }
     },
     scales: {
       y: {
@@ -239,7 +224,7 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
       duration: 2000,
       easing: 'easeOutQuart'
     }
-  };
+  } as const;
 
   const radarOptions = {
     plugins: {
@@ -293,7 +278,7 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
       duration: 2000,
       easing: 'easeOutQuart'
     }
-  };
+  } as const;
 
   const polarOptions = {
     plugins: {
@@ -337,7 +322,7 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
       duration: 2000,
       easing: 'easeOutQuart'
     }
-  };
+  } as const;
 
   const gaugeOptions = {
     responsive: true,
@@ -356,7 +341,7 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
       duration: 2000,
       easing: 'easeOutBounce'
     }
-  };
+  } as const;
 
   // Animation variants for framer-motion
   const containerVariants = {
@@ -447,9 +432,7 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
             transition={{ type: "spring", stiffness: 300 }}
           >
             <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white text-center">Aspect Scores</h3>
-            <div className="h-64">
-              <Bar data={aspectBarData} options={barOptions} />
-            </div>
+            
           </motion.div>
 
           {/* Aspect Analysis Radar Chart */}
