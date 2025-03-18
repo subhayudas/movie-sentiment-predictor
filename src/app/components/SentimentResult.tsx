@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaSmile, FaFrown, FaMeh, FaTheaterMasks, FaFilm, FaBook, FaVideo, FaDirections, FaTag, FaChartBar, FaChartPie, FaDownload, FaShareAlt, FaInfoCircle } from 'react-icons/fa';
+import { FaSmile, FaFrown, FaMeh, FaTheaterMasks, FaFilm, FaBook, FaVideo, FaDirections, FaTag, FaChartPie, FaDownload, FaShareAlt, FaInfoCircle } from 'react-icons/fa';
 import { SentimentResponse } from '../api/sentimentService';
 import SentimentVisualizations from './SentimentVisualizations';
 import { motion } from 'framer-motion';
@@ -377,7 +377,7 @@ export default function SentimentResult({ result, movieTitle }: SentimentResultP
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Analysis Method</span>
                   <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded">
-                    'Deep Learning Model'
+                    &apos;Deep Learning Model&apos;
                   </span>
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
