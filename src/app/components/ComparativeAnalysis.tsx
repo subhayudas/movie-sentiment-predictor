@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { analyzeSentiment } from '../api/sentimentService';
 import { FaPlus, FaTrash, FaExchangeAlt, FaDownload, FaChartBar, FaTable, FaInfoCircle } from 'react-icons/fa';
-import { Bar } from 'react-chartjs-2';
+// Bar component is used indirectly through ChartJS
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { saveAs } from 'file-saver';
@@ -185,85 +185,7 @@ export default function ComparativeAnalysis() {
     ],
   };
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          color: 'rgba(255, 255, 255, 0.8)',
-          font: {
-            family: "'Inter', sans-serif",
-          }
-        }
-      },
-      title: {
-        display: true,
-        text: 'Sentiment Confidence Comparison',
-        color: 'rgba(255, 255, 255, 0.9)',
-        font: {
-          size: 16,
-          weight: 'bold',
-          family: "'Inter', sans-serif",
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(30, 41, 59, 0.9)',
-        titleFont: {
-          family: "'Inter', sans-serif",
-        },
-        bodyFont: {
-          family: "'Inter', sans-serif",
-        },
-        callbacks: {
-          label: function(context: any) {
-            const label = context.dataset.label || '';
-            const value = context.parsed.y;
-            const index = context.dataIndex;
-            const sentiment = results[index]?.sentiment || 'Unknown';
-            return [`${label}: ${value.toFixed(1)}%`, `Sentiment: ${sentiment}`];
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
-        },
-        ticks: {
-          color: 'rgba(255, 255, 255, 0.7)',
-          font: {
-            family: "'Inter', sans-serif",
-          }
-        },
-        title: {
-          display: true,
-          text: 'Confidence (%)',
-          color: 'rgba(255, 255, 255, 0.9)',
-          font: {
-            family: "'Inter', sans-serif",
-          }
-        }
-      },
-      x: {
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
-        },
-        ticks: {
-          color: 'rgba(255, 255, 255, 0.7)',
-          font: {
-            family: "'Inter', sans-serif",
-          },
-          maxRotation: 45,
-          minRotation: 45
-        }
-      }
-    },
-  };
+  // Define chart options directly in the canvas ref callback
 
   // Get sentiment distribution
   const getSentimentDistribution = () => {
