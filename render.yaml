@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: imdb-sentiment-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn flask_server:app --timeout 120 --workers 2
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: 2
+      - key: PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION
+        value: python
+      - key: PYTHONUNBUFFERED
+        value: 1
