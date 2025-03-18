@@ -269,7 +269,6 @@ def analyze():
 def health_check():
     return jsonify({'status': 'ok', 'model_loaded': model is not None, 'tokenizer_loaded': tokenizer is not None})
 
-# Add this to your flask_server.py if not already present
 import os
 
 if __name__ == "__main__":

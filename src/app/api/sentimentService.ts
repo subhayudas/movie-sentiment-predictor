@@ -30,7 +30,7 @@ export interface ReviewWithResults extends ReviewSubmission {
 
 // Determine the API URL based on environment
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-render-app-name.onrender.com/analyze' // Replace with your actual Render URL
+  ? 'https://movie-sentiment-predictor.onrender.com/analyze' // Updated Render URL
   : '/api/analyze-sentiment';
 
 /**
