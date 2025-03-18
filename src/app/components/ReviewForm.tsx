@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { SentimentRequest } from '../api/sentimentService';
+import { ReviewSubmission } from '../api/sentimentService';
 
 interface ReviewFormProps {
-  onSubmit: (data: SentimentRequest) => Promise<void>;
+  onSubmit: (data: ReviewSubmission) => Promise<void>;
   isLoading: boolean;
 }
 
