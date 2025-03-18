@@ -432,7 +432,9 @@ export default function SentimentVisualizations({ result, movieTitle }: Sentimen
             transition={{ type: "spring", stiffness: 300 }}
           >
             <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white text-center">Aspect Scores</h3>
-            
+            <div className="h-64">
+              <Bar data={aspectBarData}  />
+            </div>
           </motion.div>
 
           {/* Aspect Analysis Radar Chart */}
