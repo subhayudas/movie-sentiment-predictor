@@ -12,6 +12,7 @@ import './performance.css';
 import BatchAnalysis, { BatchResult } from './components/BatchAnalysis';
 import ComparativeAnalysis from './components/ComparativeAnalysis';
 import MovieRecommendations from './components/MovieRecommendations';
+import ThemeToggle from './components/ThemeToggle';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -136,10 +137,12 @@ export default function Home() {
             transition-all duration-300
           ">
             <div className="flex items-center justify-between px-4 py-3">
+              
               <div className="flex items-center">
                 <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-purple-100">
                   MovieSense
                 </span>
+                <ThemeToggle className="ml-4" />
               </div>
               
               <div className="hidden md:flex md:items-center md:space-x-6">
@@ -232,9 +235,129 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
         <section id="analyze" className="pt-24 scroll-mt-16 lazy-section">
-          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl fade-in-up">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl fade-in-up theme-card">
             <h2 className="text-3xl font-bold mb-6 animate-gradient-text">Analyze Review</h2>
-            <ReviewForm onSubmit={handleSubmitReview} isLoading={isLoading} />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Main Review Form - Takes 2/3 of the space on large screens */}
+              <div className="lg:col-span-2">
+                <ReviewForm onSubmit={handleSubmitReview} isLoading={isLoading} />
+                
+                {/* Quick Examples Section */}
+                <div className="mt-6 p-4 bg-indigo-900/30 backdrop-blur-sm border border-indigo-500/20 rounded-lg">
+                  <h3 className="text-lg font-medium mb-3 text-white">Try an example:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { text: "This movie was absolutely brilliant! The acting was superb.", sentiment: "positive" },
+                      { text: "I found the plot confusing and the pacing too slow.", sentiment: "negative" },
+                      { text: "The special effects were good but the story was predictable.", sentiment: "mixed" }
+                    ].map((example, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          const exampleForm = document.getElementById('review-form') as HTMLFormElement;
+                          const reviewTextarea = exampleForm?.querySelector('textarea') as HTMLTextAreaElement;
+                          if (reviewTextarea) {
+                            reviewTextarea.value = example.text;
+                            // Trigger the onChange event
+                            const event = new Event('input', { bubbles: true });
+                            reviewTextarea.dispatchEvent(event);
+                          }
+                        }}
+                        className={`px-3 py-1.5 text-sm rounded-full transition-all ${
+                          example.sentiment === 'positive' 
+                            ? 'bg-green-900/40 hover:bg-green-800/50 text-green-200 border border-green-500/30' 
+                            : example.sentiment === 'negative'
+                            ? 'bg-red-900/40 hover:bg-red-800/50 text-red-200 border border-red-500/30'
+                            : 'bg-yellow-900/40 hover:bg-yellow-800/50 text-yellow-200 border border-yellow-500/30'
+                        }`}
+                      >
+                        {example.text.length > 30 ? example.text.substring(0, 30) + '...' : example.text}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Recent Analysis & Tips - Takes 1/3 of the space */}
+              <div className="bg-indigo-900/20 backdrop-blur-sm border border-indigo-500/20 rounded-lg p-5">
+                <h3 className="text-lg font-medium mb-4 text-white">Recent Analyses</h3>
+                
+                {reviewHistory.length > 0 ? (
+                  <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                    {reviewHistory.slice(0, 3).map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10 cursor-pointer"
+                        onClick={() => {
+                          const reviewForm = document.getElementById('review-form') as HTMLFormElement;
+                          const reviewTextarea = reviewForm?.querySelector('textarea') as HTMLTextAreaElement;
+                          const movieTitleInput = reviewForm?.querySelector('input[name="movieTitle"]') as HTMLInputElement;
+                          
+                          if (reviewTextarea && item.review) {
+                            reviewTextarea.value = item.review;
+                            // Trigger the onChange event
+                            const event = new Event('input', { bubbles: true });
+                            reviewTextarea.dispatchEvent(event);
+                          }
+                          
+                          if (movieTitleInput && item.movieTitle) {
+                            movieTitleInput.value = item.movieTitle;
+                            // Trigger the onChange event
+                            const event = new Event('input', { bubbles: true });
+                            movieTitleInput.dispatchEvent(event);
+                          }
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium truncate">
+                            {item.movieTitle || 'Untitled Review'}
+                          </span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            item.sentiment === 'positive' 
+                              ? 'bg-green-900/60 text-green-200' 
+                              : item.sentiment === 'negative'
+                              ? 'bg-red-900/60 text-red-200'
+                              : 'bg-yellow-900/60 text-yellow-200'
+                          }`}>
+                            {item.sentiment}
+                          </span>
+                        </div>
+                        <p className="text-sm text-white/70 line-clamp-2">
+                          {item.review}
+                        </p>
+                        <div className="text-xs text-white/50 mt-1">
+                          {new Date(item.timestamp).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-white/50">
+                    <p>No analysis history yet</p>
+                    <p className="text-sm mt-2">Your recent analyses will appear here</p>
+                  </div>
+                )}
+                
+                <div className="mt-6 pt-4 border-t border-indigo-500/20">
+                  <h3 className="text-lg font-medium mb-3 text-white">Tips</h3>
+                  <ul className="space-y-2 text-sm text-white/70">
+                    <li className="flex items-start">
+                      <span className="text-indigo-400 mr-2">•</span>
+                      <span>Longer reviews (50+ words) provide more accurate analysis</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="text-indigo-400 mr-2">•</span>
+                      <span>Include specific aspects like acting, plot, visuals for detailed feedback</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="text-indigo-400 mr-2">•</span>
+                      <span>Adding the movie title helps with contextual analysis</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -380,56 +503,56 @@ export default function Home() {
           <div className="mt-8 pt-8 border-t border-purple-900/20 text-center">
             <p className="text-foreground/70">© {new Date().getFullYear()} Movie Sentiment Analysis. All rights reserved.</p>
           </div>
+          
+          {/* Testimonials - Moved inside footer */}
+          <div className="mt-16">
+            <h3 className="text-2xl font-bold mb-8 text-center">What Users Say</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 shadow-lg hover:bg-white/10 transition-all duration-300">
+                <div className="flex items-start mb-4">
+                  <FaQuoteLeft className="text-purple-400 text-xl mr-2" />
+                </div>
+                <p className="text-white/80 mb-4">
+                  This tool has completely transformed how I understand audience reactions to my indie films. The aspect analysis is incredibly insightful.
+                </p>
+                <div className="flex justify-end">
+                  <FaQuoteRight className="text-purple-400 text-xl ml-2" />
+                </div>
+                <div className="mt-4 flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">JD</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">James Director</p>
+                    <p className="text-sm text-white/60">Independent Filmmaker</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 shadow-lg hover:bg-white/10 transition-all duration-300">
+                <div className="flex items-start mb-4">
+                  <FaQuoteLeft className="text-purple-400 text-xl mr-2" />
+                </div>
+                <p className="text-white/80 mb-4">
+                  As a film critic, I use this platform to check my own biases. The sentiment analysis is surprisingly accurate and helps me write more balanced reviews.
+                </p>
+                <div className="flex justify-end">
+                  <FaQuoteRight className="text-purple-400 text-xl ml-2" />
+                </div>
+                <div className="mt-4 flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">SC</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">Sarah Critic</p>
+                    <p className="text-sm text-white/60">Film Reviewer</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
   );
 }
-
-{/* Testimonials */}
-              <div className="mt-16">
-                <h3 className="text-2xl font-bold mb-8 text-center">What Users Say</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 shadow-lg hover:bg-white/10 transition-all duration-300">
-                    <div className="flex items-start mb-4">
-                      <FaQuoteLeft className="text-purple-400 text-xl mr-2" />
-                    </div>
-                    <p className="text-white/80 mb-4">
-                      This tool has completely transformed how I understand audience reactions to my indie films. The aspect analysis is incredibly insightful.
-                    </p>
-                    <div className="flex justify-end">
-                      <FaQuoteRight className="text-purple-400 text-xl ml-2" />
-                    </div>
-                    <div className="mt-4 flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mr-3">
-                        <span className="text-white font-bold">JD</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-white">James Director</p>
-                        <p className="text-sm text-white/60">Independent Filmmaker</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 shadow-lg hover:bg-white/10 transition-all duration-300">
-                    <div className="flex items-start mb-4">
-                      <FaQuoteLeft className="text-purple-400 text-xl mr-2" />
-                    </div>
-                    <p className="text-white/80 mb-4">
-                      As a film critic, I use this platform to check my own biases. The sentiment analysis is surprisingly accurate and helps me write more balanced reviews.
-                    </p>
-                    <div className="flex justify-end">
-                      <FaQuoteRight className="text-purple-400 text-xl ml-2" />
-                    </div>
-                    <div className="mt-4 flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center mr-3">
-                        <span className="text-white font-bold">SC</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-white">Sarah Critic</p>
-                        <p className="text-sm text-white/60">Film Reviewer</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>

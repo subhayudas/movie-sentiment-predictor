@@ -1,0 +1,77 @@
+/* Theme variables and switching */
+:root {
+  /* Dark theme (default) */
+  --primary: #8B5CF6;
+  --primary-dark: #6D28D9;
+  --secondary: #4C1D95;
+  --background: #1a1818;
+  --foreground: #F8FAFC;
+  --accent: #C4B5FD;
+  --gradient-start: #4C1D95;
+  --gradient-end: #8B5CF6;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --nav-bg-from: rgba(76, 29, 149, 0.9);
+  --nav-bg-to: rgba(109, 40, 217, 0.8);
+  --nav-border: rgba(139, 92, 246, 0.3);
+  --text-primary: rgba(255, 255, 255, 0.9);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+}
+
+/* Light theme */
+.light-theme {
+  --primary: #6D28D9;
+  --primary-dark: #4C1D95;
+  --secondary: #8B5CF6;
+  --background: #F8FAFC;
+  --foreground: #1E293B;
+  --accent: #8B5CF6;
+  --gradient-start: #8B5CF6;
+  --gradient-end: #6D28D9;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(139, 92, 246, 0.2);
+  --nav-bg-from: rgba(255, 255, 255, 0.9);
+  --nav-bg-to: rgba(243, 244, 246, 0.8);
+  --nav-border: rgba(139, 92, 246, 0.2);
+  --text-primary: rgba(30, 41, 59, 0.9);
+  --text-secondary: rgba(30, 41, 59, 0.7);
+  --text-tertiary: rgba(30, 41, 59, 0.5);
+}
+
+/* Theme-aware components */
+.theme-card {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  backdrop-filter: blur(12px);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.theme-gradient-text {
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.theme-nav {
+  background: linear-gradient(to right, var(--nav-bg-from), var(--nav-bg-to));
+  border-color: var(--nav-border);
+}
+
+/* Animated background for light theme */
+.light-theme .animated-bg-gradient {
+  background: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #dbeafe, #ede9fe);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
