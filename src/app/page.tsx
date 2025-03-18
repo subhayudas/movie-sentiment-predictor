@@ -9,35 +9,45 @@ import SentimentChart from './components/SentimentChart';
 import Hero from './components/Hero';
 import { analyzeSentiment, ReviewSubmission, SentimentResponse, ReviewWithResults } from './api/sentimentService';
 import './performance.css';
+import BatchAnalysis, { BatchResult } from './components/BatchAnalysis';
+import ComparativeAnalysis from './components/ComparativeAnalysis';
+import MovieRecommendations from './components/MovieRecommendations';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SentimentResponse | null>(null);
   const [currentMovieTitle, setCurrentMovieTitle] = useState<string>('');
   const [reviewHistory, setReviewHistory] = useState<ReviewWithResults[]>([]);
+  const [batchResults, setBatchResults] = useState<BatchResult[]>([]);
   const [isNavOpen, setIsNavOpen] = useState(false);
+  // Remove or comment out the isScrolled state if it's not being used
+  // const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Or if you need to keep it for future use, you can disable the ESLint rule for this line:
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
 
   // Debounced scroll handler to improve performance
+  // Update the sections array in the handleScroll function
   const handleScroll = useCallback(() => {
-    // Use requestAnimationFrame to limit updates to frame rate
-    requestAnimationFrame(() => {
-      setIsScrolled(window.scrollY > 10);
-      
-      // Update active section based on scroll position
-      const sections = ['hero', 'analyze', 'history', 'about'];
-      const currentSection = sections.find(section => {
-        const element = document.getElementById(section);
-        if (!element) return false;
-        const rect = element.getBoundingClientRect();
-        return rect.top <= 100 && rect.bottom >= 100;
-      });
-      
-      if (currentSection && currentSection !== activeSection) {
-        setActiveSection(currentSection);
-      }
-    });
+  // Use requestAnimationFrame to limit updates to frame rate
+  requestAnimationFrame(() => {
+  setIsScrolled(window.scrollY > 10);
+  
+  // Update active section based on scroll position
+  const sections = ['hero', 'analyze', 'batch', 'compare', 'recommendations', 'history', 'about'];
+  const currentSection = sections.find(section => {
+  const element = document.getElementById(section);
+  if (!element) return false;
+  const rect = element.getBoundingClientRect();
+  return rect.top <= 100 && rect.bottom >= 100;
+  });
+  
+  if (currentSection && currentSection !== activeSection) {
+  setActiveSection(currentSection);
+  }
+  });
   }, [activeSection]);
   
   useEffect(() => {
@@ -97,6 +107,21 @@ export default function Home() {
     }
   };
 
+  const handleBatchComplete = (results: BatchResult[]) => {
+    setBatchResults(results);
+    // Add batch results to history
+    const batchReviewsWithResults: ReviewWithResults[] = results.map(result => ({
+      review: result.review,
+      movieTitle: result.movieTitle,
+      sentiment: result.sentiment,
+      confidence: result.confidence,
+      timestamp: result.timestamp,
+      id: result.id
+    }));
+    
+    setReviewHistory(prev => [...batchReviewsWithResults, ...prev]);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground hardware-accelerated">
       {/* New Redesigned Navbar with Updated Colors */}
@@ -118,7 +143,7 @@ export default function Home() {
               </div>
               
               <div className="hidden md:flex md:items-center md:space-x-6">
-                {['hero', 'analyze', 'history', 'about'].map((section) => (
+                {['hero', 'analyze', 'batch', 'compare', 'recommendations', 'history', 'about'].map((section) => (
                   <a
                     key={section}
                     href={`#${section}`}
@@ -132,6 +157,28 @@ export default function Home() {
                   </a>
                 ))}
               </div>
+              
+              {/* Also update the mobile menu */}
+              {isNavOpen && (
+                <div className="md:hidden mt-2 animate-fadeIn">
+                  <div className="bg-gradient-to-r from-indigo-900 to-purple-800 backdrop-blur-xl rounded-xl shadow-lg border border-indigo-500/30 overflow-hidden">
+                    {['hero', 'analyze', 'batch', 'compare', 'recommendations', 'history', 'about'].map((section) => (
+                      <a
+                        key={section}
+                        href={`#${section}`}
+                        className={`block px-4 py-3 text-base font-medium transition-all duration-200 ${
+                          activeSection === section
+                            ? 'bg-indigo-700 text-white'
+                            : 'text-indigo-100 hover:bg-indigo-800 hover:text-white'
+                        }`}
+                        onClick={() => setIsNavOpen(false)}
+                      >
+                        {section.charAt(0).toUpperCase() + section.slice(1)}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div className="md:hidden">
                 <button
@@ -197,6 +244,56 @@ export default function Home() {
           </section>
         )}
 
+        {/* New Batch Analysis Section */}
+        <section id="batch" className="pt-24 scroll-mt-16 lazy-section">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl fade-in-up">
+            <h2 className="text-3xl font-bold mb-6 animate-gradient-text">Batch Analysis</h2>
+            <p className="text-lg text-white/80 mb-8">
+              Upload a CSV file with multiple reviews to analyze them all at once.
+            </p>
+            <BatchAnalysis onBatchComplete={handleBatchComplete} />
+            
+            {batchResults.length > 0 && (
+              <div className="mt-8 p-6 bg-indigo-900/30 backdrop-blur-sm border border-indigo-500/20 rounded-lg">
+                <h3 className="text-xl font-bold mb-4 text-white">Batch Results</h3>
+                <p className="text-indigo-200 mb-4">
+                  Successfully analyzed {batchResults.length} reviews. Results have been added to your history.
+                </p>
+                <div className="flex justify-center">
+                  <a 
+                    href="#history" 
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+                  >
+                    View in History
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+        
+        {/* New Comparative Analysis Section */}
+        <section id="compare" className="pt-24 scroll-mt-16 lazy-section">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl fade-in-up">
+            <h2 className="text-3xl font-bold mb-6 animate-gradient-text">Compare Reviews</h2>
+            <p className="text-lg text-white/80 mb-8">
+              Compare sentiment across multiple reviews to identify patterns and differences.
+            </p>
+            <ComparativeAnalysis />
+          </div>
+        </section>
+
+        {/* Movie Recommendations Section */}
+        <section id="recommendations" className="pt-24 scroll-mt-16 lazy-section">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl fade-in-up">
+            <h2 className="text-3xl font-bold mb-6 animate-gradient-text">Movie Recommendations</h2>
+            <p className="text-lg text-white/80">
+              Discover movies based on sentiment analysis of audience reviews.
+            </p>
+            <MovieRecommendations />
+          </div>
+        </section>
+
         <section id="history" className="pt-24 scroll-mt-16">
           <h2 className="text-3xl font-bold mb-6 animate-gradient-text">Analysis History</h2>
           <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl">
@@ -250,7 +347,7 @@ export default function Home() {
             <div>
               <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
               <ul className="space-y-2">
-                {['hero', 'analyze', 'history', 'about'].map((section) => (
+                {['hero', 'analyze', 'batch', 'compare', 'recommendations', 'history', 'about'].map((section) => (
                   <li key={section}>
                     <a 
                       href={`#${section}`} 

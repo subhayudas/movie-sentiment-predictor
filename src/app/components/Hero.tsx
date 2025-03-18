@@ -1,17 +1,14 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaFilm, FaChartLine, FaRobot, FaSearch } from 'react-icons/fa';
 
 export default function Hero() {
-  const [isVisible, setIsVisible] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setIsVisible(true);
-    
-    // Optional: Add parallax effect on scroll
+    // Add parallax effect on scroll
     const handleScroll = () => {
       if (!heroRef.current) return;
       const scrollY = window.scrollY;
@@ -44,10 +41,10 @@ export default function Hero() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated background with particles */}
+      {/* Enhanced animated background with particles */}
       <div className="absolute inset-0 animated-gradient opacity-30"></div>
       
-      {/* Floating elements */}
+      {/* Improved floating elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/6 w-64 h-64 bg-purple-800/30 rounded-full mix-blend-multiply filter blur-xl floating"></div>
         <div className="absolute top-1/3 right-1/6 w-80 h-80 bg-indigo-800/30 rounded-full mix-blend-multiply filter blur-xl floating animation-delay-2000"></div>
