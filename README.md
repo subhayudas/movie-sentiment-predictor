@@ -1,6 +1,5 @@
 # MovieSense: Advanced IMDB Sentiment Analysis Platform
 
-![Project Banner](https://movie-sentiment-predictor.vercel.app/logo.png)
 ![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Node.js Version](https://img.shields.io/badge/node.js-18%2B-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
@@ -255,9 +254,8 @@ Distributed under MIT License. See `LICENSE` for more information.
 
 ---
 
-**Maintained by**: [Your Name]  
-**Contact**: [your.email@domain.com]  
-**Project Roadmap**: [GitHub Projects Board](https://github.com/yourusername/imdb-sentiment-nextjs/projects)
+**Maintained by**: Subhayu Das  
+**Contact**: subhayudas49@gmail.com 
 
 ## Features
 
