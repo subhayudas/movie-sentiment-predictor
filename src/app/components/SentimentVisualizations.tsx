@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, RadialLinearScale, PointElement, LineElement } from 'chart.js';
 import { Pie, Bar, PolarArea, Radar } from 'react-chartjs-2';
 import { SentimentResponse } from '../api/sentimentService';
