@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, TimeScale, PointElement, LineElement } from 'chart.js';
-import { Pie, Bar, Line } from 'react-chartjs-2';
-import { FaDownload, FaTable, FaChartBar, FaCalendarAlt, FaFilter, FaSortAmountDown } from 'react-icons/fa';
+import { Pie, Bar } from 'react-chartjs-2';
+import { TooltipItem } from 'chart.js';
+import { FaDownload,  FaChartBar, FaSortAmountDown } from 'react-icons/fa';
 import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
 
@@ -33,25 +34,7 @@ interface SentimentChartProps {
   reviewHistory: ReviewWithResults[];
 }
 
-// Define types for chart.js tooltip callbacks
-interface TooltipItem {
-  raw: number;
-  dataIndex: number;
-  dataset: {
-    data: number[];
-  };
-  label?: string;
-}
 
-// Define a type for chart tooltip context
-interface TooltipContext {
-  label?: string;
-  raw: number;
-  dataIndex: number;
-  dataset: {
-    data: number[];
-  };
-}
 
 export default function SentimentChart({ reviewHistory }: SentimentChartProps) {
   const [sentimentCounts, setSentimentCounts] = useState({ positive: 0, negative: 0, neutral: 0 });
@@ -235,160 +218,9 @@ export default function SentimentChart({ reviewHistory }: SentimentChartProps) {
 
   const trendData = getTrendData();
 
-  const pieOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'right' as const,
-        labels: {
-          font: {
-            family: "'Inter', sans-serif",
-            size: 12
-          },
-          usePointStyle: true,
-          padding: 20
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: TooltipItem) {
-            const label = context.label || '';
-            const value = context.raw;
-            const total = (context.dataset.data).reduce((a, b) => a + b, 0);
-            const percentage = Math.round((value / total) * 100);
-            return `${label}: ${value} (${percentage}%)`;
-          }
-        }
-      }
-    },
-    animation: {
-      animateRotate: true,
-      animateScale: true
-    }
-  };
+  
 
-  const barChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          font: {
-            family: "'Inter', sans-serif",
-            size: 12
-          },
-          color: '#6B7280',
-          usePointStyle: true,
-        }
-      },
-      title: {
-        display: true,
-        text: 'Confidence Scores by Review',
-        font: {
-          family: "'Inter', sans-serif",
-          size: 16,
-          weight: 'bold'
-        },
-        color: '#374151',
-        padding: {
-          top: 10,
-          bottom: 20
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(17, 24, 39, 0.8)',
-        titleFont: {
-          family: "'Inter', sans-serif",
-          size: 14,
-          weight: 'bold'
-        },
-        bodyFont: {
-          family: "'Inter', sans-serif",
-          size: 13
-        },
-        padding: 12,
-        cornerRadius: 8,
-        callbacks: {
-          label: function(context: TooltipItem) {
-            const sentiment = [...reviewHistory].reverse().slice(0, 7).reverse()[context.dataIndex]?.sentiment;
-            return [`Confidence: ${context.raw}%`, `Sentiment: ${sentiment || 'Unknown'}`];
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-        title: {
-          display: true,
-          text: 'Confidence (%)',
-          font: {
-            family: "'Inter', sans-serif",
-            size: 13
-          },
-          color: '#6B7280',
-        },
-        grid: {
-          color: 'rgba(243, 244, 246, 0.8)',
-        },
-      },
-      x: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          maxRotation: 45,
-          minRotation: 45,
-          font: {
-            family: "'Inter', sans-serif",
-            size: 11
-          },
-          color: '#6B7280',
-        }
-      }
-    },
-    animation: {
-      duration: 1000,
-      easing: 'easeOutQuart'
-    }
-  };
-
-  const trendChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Sentiment Trends Over Time',
-        font: {
-          family: "'Inter', sans-serif",
-          size: 16,
-          weight: 'bold'
-        },
-        color: '#374151',
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-        title: {
-          display: true,
-          text: 'Percentage (%)',
-        },
-      },
-    },
-    animation: {
-      duration: 1000,
-    }
-  };
-
+  
   const exportToCSV = () => {
     if (reviewHistory.length === 0) return;
 
@@ -526,7 +358,7 @@ export default function SentimentChart({ reviewHistory }: SentimentChartProps) {
           <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Time Range</label>
           <select
             value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as any)}
+            onChange={(e) => setTimeRange(e.target.value as 'all' | 'week' | 'month' | 'year')}
             className="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-gray-700 dark:text-gray-300"
           >
             <option value="all">All Time</option>
@@ -541,7 +373,7 @@ export default function SentimentChart({ reviewHistory }: SentimentChartProps) {
           <div className="flex items-center">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as 'date' | 'confidence' | 'sentiment')}
               className="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-l-md text-gray-700 dark:text-gray-300"
             >
               <option value="date">Date</option>
@@ -647,7 +479,7 @@ export default function SentimentChart({ reviewHistory }: SentimentChartProps) {
                         padding: 12,
                         cornerRadius: 8,
                         callbacks: {
-                          label: function(context: any) {
+                          label: function(context: TooltipItem<'bar'>) {
                             const sentiment = [...reviewHistory].reverse().slice(0, 7).reverse()[context.dataIndex]?.sentiment;
                             return [`Confidence: ${context.raw}%`, `Sentiment: ${sentiment || 'Unknown'}`];
                           }

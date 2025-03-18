@@ -138,3 +138,93 @@ export async function mockAnalyzeSentiment(reviewData: ReviewSubmission): Promis
     aspect_analysis: aspectAnalysis
   };
 }
+
+// Add this interface to your existing interfaces
+export interface AggregatedRating {
+  id: string;
+  movieTitle: string;
+  aggregateScore: number;
+  reviewCount: number;
+  sentimentDistribution: {
+    positive: number;
+    negative: number;
+    neutral: number;
+  };
+  timestamp: Date;
+}
+
+// Add this function to store ratings
+// Replace line 160 with a more specific type
+export function saveAggregatedRating(data: {
+  movieTitle: string;
+  aggregateScore: number;
+  reviews: ReviewWithResults[];  // Changed from any[] to ReviewWithResults[]
+  sentimentDistribution: {
+    positive: number;
+    negative: number;
+    neutral: number;
+  };
+}): AggregatedRating {
+  // Create a new rating object
+  const newRating: AggregatedRating = {
+    id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+    movieTitle: data.movieTitle,
+    aggregateScore: data.aggregateScore,
+    reviewCount: data.reviews.length,
+    sentimentDistribution: data.sentimentDistribution,
+    timestamp: new Date()
+  };
+  
+  // In a real app, you would save this to a database or API
+  // For now, we'll just store it in localStorage
+  try {
+    const existingRatings = localStorage.getItem('aggregatedRatings');
+    const ratings = existingRatings ? JSON.parse(existingRatings) : [];
+    ratings.push(newRating);
+    localStorage.setItem('aggregatedRatings', JSON.stringify(ratings));
+  } catch (error) {
+    console.error('Error saving rating to localStorage:', error);
+  }
+  
+  return newRating;
+}
+
+// Add this function to retrieve ratings
+export function getAggregatedRatings(): AggregatedRating[] {
+  try {
+    const existingRatings = localStorage.getItem('aggregatedRatings');
+    return existingRatings ? JSON.parse(existingRatings) : [];
+  } catch (error) {
+    console.error('Error retrieving ratings from localStorage:', error);
+    return [];
+  }
+}
+
+// Get a specific rating by ID
+export function getAggregatedRatingById(id: string): AggregatedRating | null {
+  try {
+    const ratings = getAggregatedRatings();
+    return ratings.find(rating => rating.id === id) || null;
+  } catch (error) {
+    console.error('Error retrieving rating by ID:', error);
+    return null;
+  }
+}
+
+// Delete a rating by ID
+export function deleteAggregatedRating(id: string): boolean {
+  try {
+    const ratings = getAggregatedRatings();
+    const filteredRatings = ratings.filter(rating => rating.id !== id);
+    
+    if (filteredRatings.length === ratings.length) {
+      return false; // No rating was removed
+    }
+    
+    localStorage.setItem('aggregatedRatings', JSON.stringify(filteredRatings));
+    return true;
+  } catch (error) {
+    console.error('Error deleting rating:', error);
+    return false;
+  }
+}

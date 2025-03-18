@@ -13,6 +13,7 @@ import BatchAnalysis, { BatchResult } from './components/BatchAnalysis';
 import ComparativeAnalysis from './components/ComparativeAnalysis';
 import MovieRecommendations from './components/MovieRecommendations';
 import ThemeToggle from './components/ThemeToggle';
+import MovieRatingAggregator from './components/MovieRatingAggregator';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -404,6 +405,12 @@ export default function Home() {
             </p>
             <ComparativeAnalysis />
           </div>
+        </section>
+
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+            <MovieRatingAggregator />
+         </div>
         </section>
 
         {/* Movie Recommendations Section */}
