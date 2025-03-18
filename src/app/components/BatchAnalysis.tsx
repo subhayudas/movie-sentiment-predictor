@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { FaFileUpload, FaSpinner } from 'react-icons/fa';
-import { analyzeSentiment, ReviewSubmission } from '../api/sentimentService';
+import { analyzeSentiment } from '../api/sentimentService';
 
 interface BatchAnalysisProps {
   onBatchComplete: (results: BatchResult[]) => void;

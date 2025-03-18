@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "@next/next/no-img-element": "off",
+    "react/jsx-no-comment-textnodes": "off",
+    "react/jsx-no-undef": "error"
+  }
+}

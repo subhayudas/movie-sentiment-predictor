@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FaFilm, FaSearch, FaStar, FaRegStar, FaStarHalfAlt } from 'react-icons/fa';
+import Image from 'next/image';
 
 interface Movie {
   id: string;
@@ -148,11 +149,13 @@ export default function MovieRecommendations() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMovies.map(movie => (
           <div key={movie.id} className="bg-indigo-900/40 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-indigo-500/20 hover:border-indigo-500/40">
-            <div className="h-64 overflow-hidden">
-              <img 
+            <div className="h-64 overflow-hidden relative">
+              <Image 
                 src={movie.posterUrl} 
                 alt={movie.title} 
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover transition-transform duration-300 hover:scale-110"
               />
             </div>
             <div className="p-4">

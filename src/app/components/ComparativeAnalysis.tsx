@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { FaPlus, FaTrash, FaExchangeAlt } from 'react-icons/fa';
-import { analyzeSentiment, ReviewSubmission } from '../api/sentimentService';
+import { analyzeSentiment } from '../api/sentimentService';
+// Removed unused uuidv4 import
+import { FaTrash, FaPlus, FaExchangeAlt } from 'react-icons/fa';
 
 interface ComparisonItem {
   id: string;
@@ -114,7 +115,7 @@ export default function ComparativeAnalysis() {
                 className="text-indigo-300 hover:text-red-400 transition-colors"
                 aria-label="Remove item"
               >
-                <FaTrash />
+                <FaTrash className="h-5 w-5" />
               </button>
             </div>
             
@@ -146,7 +147,7 @@ export default function ComparativeAnalysis() {
           onClick={handleAddItem}
           className="w-full py-2 border-2 border-dashed border-indigo-500/30 rounded-lg text-indigo-300 hover:bg-indigo-900/40 transition-colors flex items-center justify-center"
         >
-          <FaPlus className="mr-2" />
+          <FaPlus className="h-5 w-5 mr-2" />
           Add Another Review
         </button>
       </div>
@@ -167,7 +168,7 @@ export default function ComparativeAnalysis() {
           </span>
         ) : (
           <span className="flex items-center">
-            <FaExchangeAlt className="mr-2" />
+            <FaExchangeAlt className="h-5 w-5 mr-2" />
             Compare Reviews
           </span>
         )}
