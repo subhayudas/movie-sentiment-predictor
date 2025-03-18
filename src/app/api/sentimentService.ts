@@ -5,7 +5,10 @@ export interface SentimentResponse {
   sentiment: string;
   confidence: number;
   key_phrases?: string[];
-  aspect_analysis?: Record<string, any>;
+  aspect_analysis?: Record<string, {
+    score: number;
+    keywords: string[];
+  }>;
   method?: string;
   error?: string;
 }
