@@ -1,158 +1,79 @@
 import axios from 'axios';
 
-// Define the response type from the sentiment analysis API
+// Define the response interface
 export interface SentimentResponse {
-  sentiment: 'positive' | 'negative' | 'neutral';
+  sentiment: string;
   confidence: number;
   key_phrases?: string[];
-  aspect_analysis?: {
-    [aspect: string]: {
-      score: number;
-      keywords: string[];
-    };
-  };
+  aspect_analysis?: Record<string, any>;
+  method?: string;
   error?: string;
 }
 
-// Define the review submission type
-export interface ReviewSubmission {
+// Define the request interface
+export interface SentimentRequest {
   review: string;
-  movieTitle?: string; // Optional movie title
+  movieTitle?: string;
+  lightweight?: boolean;
 }
 
-// Define the review with results type for storing in history
-export interface ReviewWithResults extends ReviewSubmission {
-  sentiment: string;
-  confidence: number;
-  timestamp: Date;
-  id: string;
-}
-
-// Determine the API URL based on environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (process.env.NODE_ENV === 'production' 
-    ? 'https://movie-sentiment-predictor.onrender.com/analyze' 
-    : '/api/analyze-sentiment');
+// Get API URLs from environment variables
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const FALLBACK_API_URL = process.env.NEXT_PUBLIC_API_FALLBACK_URL || '';
 
 /**
- * Analyzes the sentiment of a movie review
- * @param reviewData The review data to analyze
- * @returns Promise with the sentiment analysis results
+ * Analyzes sentiment of a review with automatic fallback
  */
-export async function analyzeSentiment(reviewData: ReviewSubmission): Promise<SentimentResponse> {
+export async function analyzeSentiment(data: SentimentRequest): Promise<SentimentResponse> {
+  // Try the main API endpoint first
   try {
-    console.log('Sending request to:', API_URL);
-    const response = await axios.post(API_URL, reviewData, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Origin': typeof window !== 'undefined' ? window.location.origin : 'https://imdb-sentiment-nextjs.vercel.app'
-      },
+    console.log('Attempting to use primary API endpoint...');
+    const response = await axios.post(API_URL, data, {
+      headers: { 'Content-Type': 'application/json' },
       timeout: 15000 // 15 second timeout
     });
+    
+    console.log('Primary API response received');
     return response.data;
   } catch (error) {
-    console.error('Error analyzing sentiment:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error details:', {
-        message: error.message,
-        code: error.code,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+    console.error('Primary API failed:', error);
+    
+    // If main API fails and fallback URL is available, try the fallback
+    if (FALLBACK_API_URL && FALLBACK_API_URL !== API_URL) {
+      console.log('Attempting to use fallback API endpoint...');
+      try {
+        const fallbackResponse = await axios.post(FALLBACK_API_URL, data, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 10000 // 10 second timeout for fallback
+        });
+        
+        console.log('Fallback API response received');
+        return fallbackResponse.data;
+      } catch (fallbackError) {
+        console.error('Fallback API also failed:', fallbackError);
+        throw new Error('Both primary and fallback API endpoints failed');
+      }
     }
-    throw new Error('Failed to analyze sentiment. Please try again.');
+    
+    // If no fallback URL or fallback failed, rethrow the original error
+    throw error;
   }
 }
 
 /**
- * Mock function to simulate API response for development
- * This can be used during development before connecting to the real API
- * @param reviewData The review data to analyze
- * @returns Promise with mock sentiment analysis results
+ * Directly uses the lightweight analysis endpoint
  */
-export async function mockAnalyzeSentiment(reviewData: ReviewSubmission): Promise<SentimentResponse> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Simple sentiment analysis logic based on keywords
-  const review = reviewData.review.toLowerCase();
-  
-  // Determine sentiment and confidence
-  let sentiment: 'positive' | 'negative' | 'neutral';
-  let confidence: number;
-  
-  if (review.includes('love') || review.includes('great') || review.includes('excellent') || review.includes('amazing')) {
-    sentiment = 'positive';
-    confidence = 0.85;
-  } else if (review.includes('hate') || review.includes('terrible') || review.includes('awful') || review.includes('bad')) {
-    sentiment = 'negative';
-    confidence = 0.78;
-  } else {
-    sentiment = 'neutral';
-    confidence = 0.65;
+export async function analyzeSentimentLightweight(data: SentimentRequest): Promise<SentimentResponse> {
+  if (!FALLBACK_API_URL) {
+    throw new Error('Fallback API URL not configured');
   }
   
-  // Generate mock key phrases
-  const keyPhrases: string[] = [];
+  const response = await axios.post(FALLBACK_API_URL, {
+    ...data,
+    lightweight: true
+  }, {
+    headers: { 'Content-Type': 'application/json' }
+  });
   
-  // Extract some words from the review as key phrases
-  const words = review.split(/\s+/).filter(word => word.length > 3);
-  const uniqueWords = [...new Set(words)];
-  const selectedWords = uniqueWords.slice(0, Math.min(5, uniqueWords.length));
-  
-  if (selectedWords.length > 0) {
-    keyPhrases.push(...selectedWords);
-  } else {
-    keyPhrases.push('No specific key phrases identified.');
-  }
-  
-  // Generate mock aspect analysis
-  const aspectAnalysis: {
-    [aspect: string]: {
-      score: number;
-      keywords: string[];
-    };
-  } = {};
-  
-  // Check for aspects in the review
-  if (review.includes('act') || review.includes('perform') || review.includes('character')) {
-    aspectAnalysis['Acting Quality'] = {
-      score: confidence,
-      keywords: ['acting', 'performance', 'character'].filter(k => review.includes(k))
-    };
-  }
-  
-  if (review.includes('plot') || review.includes('story') || review.includes('script')) {
-    aspectAnalysis['Plot & Story'] = {
-      score: confidence,
-      keywords: ['plot', 'story', 'script'].filter(k => review.includes(k))
-    };
-  }
-  
-  if (review.includes('visual') || review.includes('effect') || review.includes('scene')) {
-    aspectAnalysis['Visual Elements'] = {
-      score: confidence,
-      keywords: ['visual', 'effects', 'scene'].filter(k => review.includes(k))
-    };
-  }
-  
-  // If no aspects were found, add a general one
-  if (Object.keys(aspectAnalysis).length === 0) {
-    aspectAnalysis['General'] = {
-      score: confidence,
-      keywords: []
-    };
-  }
-  
-  return { 
-    sentiment, 
-    confidence,
-    key_phrases: keyPhrases,
-    aspect_analysis: aspectAnalysis
-  };
+  return response.data;
 }
-
-// Export a function that uses the mock or real API based on environment
-export const submitReview = process.env.NODE_ENV === 'development' 
-  ? mockAnalyzeSentiment 
-  : analyzeSentiment;

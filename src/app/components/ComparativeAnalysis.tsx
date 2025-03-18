@@ -58,20 +58,37 @@ export default function ComparativeAnalysis() {
 
     try {
       const analysisPromises = items.map(async (item) => {
-        const result = await analyzeSentiment({
-          review: item.review,
-          movieTitle: item.movieTitle
-        });
-
-        return {
-          ...item,
-          sentiment: result.sentiment,
-          confidence: result.confidence
-        };
+        try {
+          const result = await analyzeSentiment({
+            review: item.review,
+            movieTitle: item.movieTitle
+          });
+        
+          return {
+            ...item,
+            sentiment: result.sentiment,
+            confidence: result.confidence
+          };
+        } catch (itemError) {
+          console.error(`Error analyzing item ${item.id}:`, itemError);
+          // Return item with error state
+          return {
+            ...item,
+            sentiment: 'error',
+            confidence: 0,
+            error: 'Analysis failed'
+          };
+        }
       });
-
+    
       const analysisResults = await Promise.all(analysisPromises);
       setResults(analysisResults);
+      
+      // Check if any analyses failed
+      const failedAnalyses = analysisResults.filter(result => result.sentiment === 'error');
+      if (failedAnalyses.length > 0) {
+        setError(`${failedAnalyses.length} of ${analysisResults.length} analyses failed. Results may be incomplete.`);
+      }
     } catch (err) {
       setError('An error occurred during analysis. Please try again.');
       console.error(err);
@@ -87,6 +104,7 @@ export default function ComparativeAnalysis() {
       case 'positive': return 'bg-green-500';
       case 'negative': return 'bg-red-500';
       case 'neutral': return 'bg-blue-500';
+      case 'error': return 'bg-yellow-500';  // Add error state
       default: return 'bg-gray-500';
     }
   };

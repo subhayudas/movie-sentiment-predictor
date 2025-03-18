@@ -3,6 +3,9 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Reduce TensorFlow warnings
 os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 os.environ['PYTHONUNBUFFERED'] = '1'
+# Add TensorFlow memory optimization
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'  # Prevent TF from allocating all GPU memory
+os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'  # Use async memory allocator
 
 # Try importing numpy first with specific error handling
 try:
@@ -21,6 +24,25 @@ except ImportError as e:
 try:
     import tensorflow as tf
     print(f"TensorFlow version: {tf.__version__}")
+    
+    # Configure TensorFlow to use less memory
+    physical_devices = tf.config.list_physical_devices('GPU')
+    if physical_devices:
+        for device in physical_devices:
+            tf.config.experimental.set_memory_growth(device, True)
+    
+    # Limit TensorFlow to use only necessary memory
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            for gpu in gpus:
+                tf.config.experimental.set_virtual_device_configuration(
+                    gpu,
+                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)]
+                )
+        except RuntimeError as e:
+            print(f"Virtual device configuration error: {e}")
+    
     import joblib
     import pickle
     from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -29,6 +51,7 @@ try:
     import json
     from flask import Flask, request, jsonify
     from flask_cors import CORS
+    import gc  # For garbage collection
 except ImportError as e:
     print(f"Error importing dependencies: {e}")
     raise
@@ -45,6 +68,10 @@ class CustomUnpickler(pickle.Unpickler):
                 module = 'tensorflow.keras.preprocessing.text'
             elif module == 'keras.src.preprocessing':
                 module = 'tensorflow.keras.preprocessing'
+            # Add more comprehensive remapping for keras.src
+            elif module.startswith('keras.src.'):
+                # Replace keras.src with tensorflow.keras
+                module = 'tensorflow.keras' + module[9:]
         
         return super().find_class(module, name)
 
@@ -62,50 +89,66 @@ CORS(app, origins=[
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "python", "model.h5")
 TOKENIZER_PATH = os.path.join(os.path.dirname(__file__), "python", "tokenizer.pkl")
 
-# Load the model and tokenizer with custom object scope to handle compatibility
-try:
-    # First attempt: try loading with standard method
-    model = tf.keras.models.load_model(MODEL_PATH)
-    print("Model loaded successfully from", MODEL_PATH)
-except ValueError as e:
-    # Second attempt: use custom object scope to ignore incompatible parameters
-    print(f"Using compatibility mode to load model... Error: {e}")
-    
-    # Custom LSTM layer that ignores the time_major parameter
-    class CompatibleLSTM(tf.keras.layers.LSTM):
-        def __init__(self, *args, **kwargs):
-            # Remove incompatible parameters
-            if 'time_major' in kwargs:
-                del kwargs['time_major']
-            super().__init__(*args, **kwargs)
-    
-    # Load with custom objects
-    model = tf.keras.models.load_model(
-        MODEL_PATH, 
-        custom_objects={'LSTM': CompatibleLSTM}
-    )
-    print("Model loaded with compatibility mode from", MODEL_PATH)
-except Exception as e:
-    print(f"Failed to load model: {e}")
-    model = None
+# Global variables for model and tokenizer
+model = None
+tokenizer = None
 
-# Load tokenizer with error handling
-try:
-    tokenizer = joblib.load(TOKENIZER_PATH)
-    print("Tokenizer loaded successfully from", TOKENIZER_PATH)
-except Exception as e:
-    print(f"Using compatibility mode to load tokenizer... Error: {e}")
-    try:
-        # Try to load with custom unpickler
-        with open(TOKENIZER_PATH, 'rb') as f:
-            tokenizer = CustomUnpickler(f).load()
-        print("Tokenizer loaded with custom unpickler from", TOKENIZER_PATH)
-    except Exception as e2:
-        print(f"Failed to load tokenizer with custom unpickler: {e2}")
-        # As a last resort, recreate a basic tokenizer
-        from tensorflow.keras.preprocessing.text import Tokenizer
-        print("Creating a new tokenizer. This may not match the original exactly.")
-        tokenizer = Tokenizer(num_words=5000)
+# Lazy loading function for model - only load when needed
+def get_model():
+    global model
+    if model is None:
+        try:
+            # First attempt: try loading with standard method
+            model = tf.keras.models.load_model(MODEL_PATH)
+            print("Model loaded successfully from", MODEL_PATH)
+        except ValueError as e:
+            # Second attempt: use custom object scope to ignore incompatible parameters
+            print(f"Using compatibility mode to load model... Error: {e}")
+            
+            # Custom LSTM layer that ignores the time_major parameter
+            class CompatibleLSTM(tf.keras.layers.LSTM):
+                def __init__(self, *args, **kwargs):
+                    # Remove incompatible parameters
+                    if 'time_major' in kwargs:
+                        del kwargs['time_major']
+                    super().__init__(*args, **kwargs)
+            
+            # Load with custom objects
+            model = tf.keras.models.load_model(
+                MODEL_PATH, 
+                custom_objects={'LSTM': CompatibleLSTM}
+            )
+            print("Model loaded with compatibility mode from", MODEL_PATH)
+        except Exception as e:
+            print(f"Failed to load model: {e}")
+            return None
+    return model
+
+# Lazy loading function for tokenizer
+def get_tokenizer():
+    global tokenizer
+    if tokenizer is None:
+        try:
+            tokenizer = joblib.load(TOKENIZER_PATH)
+            print("Tokenizer loaded successfully from", TOKENIZER_PATH)
+        except Exception as e:
+            print(f"Using compatibility mode to load tokenizer... Error: {e}")
+            try:
+                # Try to load with custom unpickler
+                with open(TOKENIZER_PATH, 'rb') as f:
+                    tokenizer = CustomUnpickler(f).load()
+                print("Tokenizer loaded with custom unpickler from", TOKENIZER_PATH)
+            except Exception as e2:
+                print(f"Failed to load tokenizer with custom unpickler: {e2}")
+                # As a last resort, recreate a basic tokenizer
+                try:
+                    from tensorflow.keras.preprocessing.text import Tokenizer
+                    print("Creating a new tokenizer. This may not match the original exactly.")
+                    tokenizer = Tokenizer(num_words=5000)
+                except Exception as e3:
+                    print(f"Failed to create new tokenizer: {e3}")
+                    return None
+    return tokenizer
 
 def clean_text(text):
     """Clean and preprocess text for word cloud"""
@@ -201,61 +244,141 @@ def analyze_sentiment_aspects(text, sentiment_score):
 # Define global constants
 MAX_SEQUENCE_LENGTH = 200  # Adjust based on your model's requirements
 
+# Add a lightweight fallback analyzer that doesn't use the full model
+def lightweight_analyze(text):
+    """A lightweight sentiment analysis that doesn't use the full model"""
+    # Simple word-based sentiment analysis
+    positive_words = {'good', 'great', 'excellent', 'amazing', 'wonderful', 'best', 'love', 
+                     'awesome', 'fantastic', 'enjoyed', 'favorite', 'perfect', 'brilliant',
+                     'superb', 'outstanding', 'masterpiece', 'beautiful', 'recommend'}
+    
+    negative_words = {'bad', 'worst', 'terrible', 'awful', 'boring', 'waste', 'poor', 
+                     'disappointing', 'horrible', 'hate', 'stupid', 'ridiculous', 'worse',
+                     'dull', 'mediocre', 'fails', 'avoid', 'mess', 'disaster'}
+    
+    # Clean and tokenize text
+    cleaned_text = clean_text(text)
+    words = cleaned_text.split()
+    
+    # Count positive and negative words
+    positive_count = sum(1 for word in words if word in positive_words)
+    negative_count = sum(1 for word in words if word in negative_words)
+    
+    # Calculate sentiment score
+    total_count = positive_count + negative_count
+    if total_count == 0:
+        sentiment_score = 0.5  # Neutral if no sentiment words found
+    else:
+        sentiment_score = positive_count / total_count
+    
+    # Determine sentiment label
+    if sentiment_score > 0.66:
+        sentiment = 'positive'
+    elif sentiment_score < 0.33:
+        sentiment = 'negative'
+    else:
+        sentiment = 'neutral'
+    
+    return {
+        'sentiment': sentiment,
+        'confidence': sentiment_score,
+        'key_phrases': extract_key_phrases(text, sentiment),
+        'aspect_analysis': analyze_sentiment_aspects(text, sentiment_score),
+        'method': 'lightweight'
+    }
+
+# Add a parameter to the analyze route to allow fallback mode
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    if not model or not tokenizer:
-        return jsonify({
-            'error': 'Model or tokenizer not loaded properly',
-            'sentiment': 'neutral',
-            'confidence': 0.5
-        }), 500
-        
     try:
         # Get the review data from the request
         data = request.json
         review_text = data.get('review', '')
         movie_title = data.get('movieTitle', '')
+        use_lightweight = data.get('lightweight', False)
         
         if not review_text:
             return jsonify({'error': 'Review text is required'}), 400
         
-        # Tokenize and pad the sequence
-        sequences = tokenizer.texts_to_sequences([review_text])
-        padded_sequences = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
+        # Use lightweight analysis if requested or if we're having memory issues
+        if use_lightweight:
+            return jsonify(lightweight_analyze(review_text))
         
-        # Make prediction
-        prediction = model.predict(padded_sequences)[0]
-        
-        # Interpret the prediction
-        # Assuming your model outputs probabilities for positive, negative, neutral
-        # Adjust this based on your model's output format
-        sentiment_score = float(prediction[0])  # Assuming first output is sentiment score
-        
-        # Determine sentiment label
-        if sentiment_score > 0.66:
-            sentiment = 'positive'
-        elif sentiment_score < 0.33:
-            sentiment = 'negative'
-        else:
-            sentiment = 'neutral'
+        # Try to use the full model
+        try:
+            # Lazy load model and tokenizer only when needed
+            model = get_model()
+            tokenizer = get_tokenizer()
             
-        # Extract key phrases
-        key_phrases = extract_key_phrases(review_text, sentiment)
+            if not model or not tokenizer:
+                print("Model or tokenizer not available, falling back to lightweight analysis")
+                return jsonify(lightweight_analyze(review_text))
+            
+            # Tokenize and pad the sequence
+            sequences = tokenizer.texts_to_sequences([review_text])
+            padded_sequences = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
+            
+            # Make prediction with reduced verbosity
+            prediction = model.predict(padded_sequences, verbose=0)[0]
+            
+            # Interpret the prediction
+            sentiment_score = float(prediction[0])  # Assuming first output is sentiment score
+            
+            # Determine sentiment label
+            if sentiment_score > 0.66:
+                sentiment = 'positive'
+            elif sentiment_score < 0.33:
+                sentiment = 'negative'
+            else:
+                sentiment = 'neutral'
+                
+            # Extract key phrases
+            key_phrases = extract_key_phrases(review_text, sentiment)
+            
+            # Analyze aspects
+            aspect_analysis = analyze_sentiment_aspects(review_text, sentiment_score)
+            
+            # Return the results
+            return jsonify({
+                'sentiment': sentiment,
+                'confidence': sentiment_score,
+                'key_phrases': key_phrases,
+                'aspect_analysis': aspect_analysis,
+                'method': 'full_model'
+            })
         
-        # Analyze aspects
-        aspect_analysis = analyze_sentiment_aspects(review_text, sentiment_score)
-        
-        # Return the results
-        return jsonify({
-            'sentiment': sentiment,
-            'confidence': sentiment_score,
-            'key_phrases': key_phrases,
-            'aspect_analysis': aspect_analysis
-        })
-        
+        except Exception as e:
+            print(f"Error using full model, falling back to lightweight analysis: {e}")
+            return jsonify(lightweight_analyze(review_text))
+            
     except Exception as e:
         print(f"Error analyzing sentiment: {e}")
-        # Fallback to a simpler analysis method if the model fails
+        # Fallback to a simpler analysis method if everything fails
+        return jsonify({
+            'sentiment': 'neutral',
+            'confidence': 0.5,
+            'key_phrases': ['Error in analysis'],
+            'aspect_analysis': {},
+            'error': str(e),
+            'method': 'error_fallback'
+        }), 500
+    finally:
+        # Force garbage collection to free memory
+        gc.collect()
+
+# Add a new endpoint for lightweight analysis only
+@app.route('/analyze/lightweight', methods=['POST'])
+def analyze_lightweight():
+    try:
+        data = request.json
+        review_text = data.get('review', '')
+        
+        if not review_text:
+            return jsonify({'error': 'Review text is required'}), 400
+            
+        return jsonify(lightweight_analyze(review_text))
+    except Exception as e:
+        print(f"Error in lightweight analysis: {e}")
         return jsonify({
             'sentiment': 'neutral',
             'confidence': 0.5,
@@ -267,9 +390,15 @@ def analyze():
 # Simple health check endpoint
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({'status': 'ok', 'model_loaded': model is not None, 'tokenizer_loaded': tokenizer is not None})
-
-import os
+    return jsonify({
+        'status': 'ok', 
+        'model_loaded': model is not None, 
+        'tokenizer_loaded': tokenizer is not None,
+        'memory_info': {
+            'gc_count': gc.get_count(),
+            'gc_threshold': gc.get_threshold()
+        }
+    })
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
