@@ -14,6 +14,7 @@ import ComparativeAnalysis from './components/ComparativeAnalysis';
 import MovieRecommendations from './components/MovieRecommendations';
 import ThemeToggle from './components/ThemeToggle';
 import MovieRatingAggregator from './components/MovieRatingAggregator';
+import About from './components/About'; // Add this import
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -431,36 +432,14 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Replace the existing about section with the About component */}
         <section id="about" className="pt-24 pb-24 scroll-mt-16">
           <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-xl fade-in-up">
             <h2 className="text-3xl font-bold mb-6 animate-gradient-text">About</h2>
-            <div className="prose prose-invert max-w-none">
-              <p className="text-lg text-white/80">
-                Our advanced AI-powered sentiment analysis tool helps you understand the emotional tone of movie reviews.
-                Using state-of-the-art natural language processing, we analyze reviews to determine their sentiment,
-                extract key phrases, and provide detailed aspect-based analysis.
-              </p>
-              
-              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="text-center p-6 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-all duration-300 hover:-translate-y-1 shadow-lg">
-                  <div className="text-primary text-4xl mb-4 bounce">🎭</div>
-                  <h3 className="text-xl font-semibold mb-2">Sentiment Detection</h3>
-                  <p className="text-white/70">Accurately identifies the emotional tone of reviews</p>
-                </div>
-                <div className="text-center p-6 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-all duration-300 hover:-translate-y-1 shadow-lg animation-delay-2000">
-                  <div className="text-primary text-4xl mb-4 bounce animation-delay-2000">🎯</div>
-                  <h3 className="text-xl font-semibold mb-2">Aspect Analysis</h3>
-                  <p className="text-white/70">Breaks down reviews by specific movie aspects</p>
-                </div>
-                <div className="text-center p-6 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-all duration-300 hover:-translate-y-1 shadow-lg animation-delay-4000">
-                  <div className="text-primary text-4xl mb-4 bounce animation-delay-4000">📊</div>
-                  <h3 className="text-xl font-semibold mb-2">Visual Insights</h3>
-                  <p className="text-white/70">Beautiful visualizations of analysis results</p>
-                </div>
-              </div>
-            </div>
+            <About />
           </div>
         </section>
+
       </main>
 
       <footer className="bg-white/5 backdrop-blur-lg border-t border-white/10 py-12 mt-24">
