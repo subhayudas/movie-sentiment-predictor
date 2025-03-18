@@ -3,7 +3,12 @@
 import { useEffect, useState } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import { ReviewWithResults } from '../api/sentimentService';
+interface ReviewWithResults {
+  id: string;
+  movieTitle?: string;
+  sentiment: string;
+  confidence: number;
+}
 
 // Register ChartJS components
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
